@@ -1,6 +1,37 @@
 -- adding an alphabet: phrased as monoid homomorphisms
+{-
+TODO:
+    * Find a nice proof of 'Induce induces a homomorphism'.
+        * Current best requires induction to appeal to associativity of (<>)
+        * Possible approach: general fact of mconcat (xs ++ ys) = mconcat xs <> mconcat ys
+        * Backup plan: simply finish the proof
+    * Prove N1
+        * via proving run . determinise = run
+            * via 'induce induces a homomorphism'
+    * Prove N2
+
+    Ideas:
+    * Hierarchy of determinisation/lifting with Monad, Applicative, Functor, formalise.
+    * Can we weaken the monad requirement on Speakable?
+        * Clean up Speakable section
+    * What is the space of list-algebras [Bool] -> Bool?
+        * and, or, xor all seem to work
+    * Describe the powerset constrained MFA, how is it related to the [] MFA?
+    * Describe the product of LTS and NFA and prove its key property
+    * Can we approach w-regular languages/Büchi automata this way?
+    * Probability MFA in general has infinite state space due to limiting behaviour.
+        * What is the space of algebras?
+            * Mode of Prob Bool
+            * Thresholding p -> Pr (p(1) ~ r) >= s
+        * What are the languages accepted by the probability MFA with a choice of algebra?
+    * Can we characterise Functors, Applicatives and Monads by the monoid actions they induce?
+    * What on earth is an FFA and AFA?
+    * Extended examples of automata in this framework used to model systems
+        * in sore need
+-}
+
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
-import Control.Monad ((>=>))
+import Control.Monad ((<=<))
 import Data.List (inits)
 import Data.Maybe (isJust)
 --import Data.Void (Void)
@@ -23,9 +54,6 @@ instance {-# OVERLAPPING #-} Semigroup (a -> a) where -- overlapping to override
 
 instance Applicative f => Semigroup (f (a -> a)) where
     f <> g = (.) <$> f <*> g
-
-
-(<=<) ::
 
 instance {-# OVERLAPPING #-} Monad m => Semigroup (a -> m a) where
     (<>) = (<=<)
@@ -58,6 +86,9 @@ newtype Label a = Label {satisfies :: a -> Bool}
 -- note Free(s) = [s] as monoids
 induce :: Monoid f => (s -> f) -> ([s] -> f)
 induce v = foldr (\x xs -> v x <> xs) mempty
+
+-- alternative definition which may be way cuter algebraically speaking
+-- induce v = mconcat . map v
 
 type Automata s f a = (s -> f, a)
 run :: Act f a => Automata s f a -> [s] -> a
@@ -210,4 +241,51 @@ Proof of N1:
     RHS = lang' aut accept
         = lang aut (speak accept)
 
+-}
+
+
+{-
+induce :: Monoid f => (s -> f) -> ([s] -> f)
+induce v = foldr (\x xs -> v x <> xs) mempty
+
+Induce induces a homomorphism:
+    induce v [] = mempty :: f
+    induce v (a ++ b) = induce v a <> induce v b
+Proof:
+    induce v [] = foldr (\x xs -> v x <> xs) mempty [] = mempty
+    induce v (a ++ b)
+        = foldr c mempty (a ++ b)
+        (where c = \x xs -> v x <> xs)
+        = foldr c mempty (foldr (:) b a)
+        [++ b = foldr (:) b]
+        = foldr c (foldr c mempty b) a
+        [
+        Fold fusion.
+        foldr c mempty ((:) x y) = c x (foldr c mempty y)
+            = (\s t -> c s t) x (foldr c mempty y)
+        ]
+        = foldr c (induce v b) a
+
+Composition lemma:
+    If g is a monoid, and if w :: f -> g is a monoid homomorphism, then
+    w . induce v = induce (w . v)
+Proof:
+    STATEMENT OF FOLD FUSION:
+        https://flolac.iis.sinica.edu.tw/2020/FP-FoldHandouts.pdf
+        If p :: a -> b -> b, e :: b, r :: b -> c, q :: a -> c -> c, then
+            r . foldr p e = foldr q (r e)
+        if r (p x y) = q x (r y) for all x and y
+
+    w ((\x xs -> v x <> xs) x xs)
+        = w (v x <> xs)
+        = w (v x) <> w xs [w hom]
+        = (\x y -> (w . v) x <> y) x (w xs)
+    Hence by fold fusion,
+    w . induce v = w . foldr (\x xs -> v x <> xs) mempty [defn induce]
+                 = foldr (\x y -> (w . v) x <> y) (w mempty) [fusion]
+                 = foldr (\x y -> (w . v) x <> y) mempty [w hom]
+                 = induce (w . v) [defn induce]
+
+Corollary:
+    act . induce v = induce (act . v)
 -}
