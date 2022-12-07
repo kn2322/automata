@@ -29,6 +29,7 @@ TODO:
     * Extended examples of automata in this framework used to model systems
         * in sore need
     * Computation trees streams, and bushes as their monadic counterpart
+    * CPS with call/cc?
 -}
 
 {-
