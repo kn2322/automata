@@ -28,6 +28,15 @@ TODO:
     * What on earth is an FFA and AFA?
     * Extended examples of automata in this framework used to model systems
         * in sore need
+    * Computation trees streams, and bushes as their monadic counterpart
+-}
+
+{-
+S
+|S|
+u -> (a -> a)
+
+S* -> (a -> a) -> a
 -}
 
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
@@ -106,6 +115,23 @@ type Deterministic a = Automata () (a -> a) a
 type DFA s a = Automata s (a -> a) a
 type MFA s m a = Automata s (a -> m a) (m a) -- Monadeterministic finite automata
 type AFA s f a = Automata s (f (a -> a)) (f a) -- Applicative finite automata
+
+{-
+s -> [a -> a]
+[s] -> [a -> a]
+[a]
+
+
+[a1, a2, a3, a4, a5]
+-s1> [f1, f2, f3] <*> [a1, a2, a3, a4, a5]
+= [f1 a1, f2 a2, f3 a3]
+-s2> [g1, g2] <*> [f1 a1, f2 a2, f3 a3]
+= [g1 . f1 $ a1, g2 . f2 $ a2]
+-s1> [f1, f2, f3] <*> [g1 . f1 $ a1, g2 . f2 $ a2]
+= [_, _]
+-s3> [] [_, _]
+= []
+-}
 type FFA s f a = Automata s (a -> a) (f a) -- Functorial finite automata
 
 type NFA s a = MFA s [] a
@@ -158,6 +184,14 @@ a l alg = l . alg
 
 b :: Functor m => (a -> Bool) -> (m Bool -> Bool) -> m a -> Bool
 b l alg = alg . fmap l
+
+{-
+Monad m
+_ -> (a -> Bool) -> (m a -> Bool)
+f :: a -> Bool
+fmap f :: m a -> m Bool
+? :: m Bool -> Bool
+-}
 
 liftLabel :: Functor f => (f Bool -> Bool) -> Label a  -> Label (f a)
 liftLabel alg accept = Label $ alg . fmap (satisfies accept)
@@ -269,6 +303,7 @@ Proof:
 Composition lemma:
     If g is a monoid, and if w :: f -> g is a monoid homomorphism, then
     w . induce v = induce (w . v)
+
 Proof:
     STATEMENT OF FOLD FUSION:
         https://flolac.iis.sinica.edu.tw/2020/FP-FoldHandouts.pdf
