@@ -30,6 +30,8 @@ TODO:
         * in sore need
     * Computation trees streams, and bushes as their monadic counterpart
     * CPS with call/cc?
+    * Consideration of affine monads, and abstraction of 'finite' monad as (forall a. Finite a => Finite (m a)) => FiniteMonad m. Synthetic topology?
+        * Describing pumping lemma
 -}
 
 {-
