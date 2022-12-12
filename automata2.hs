@@ -11,6 +11,9 @@ TODO:
     * Prove N2
 
     Ideas:
+    * Distinguishing monads, applicatives, and functors by their computation trees/decision making using list monad
+        * This is its own thing!
+    * Role of bisimulation and coalgebras in general (see POPL paper)
     * Hierarchy of determinisation/lifting with Monad, Applicative, Functor, formalise.
     * Can we weaken the monad requirement on Speakable?
         * Clean up Speakable section
@@ -32,6 +35,7 @@ TODO:
     * CPS with call/cc?
     * Consideration of affine monads, and abstraction of 'finite' monad as (forall a. Finite a => Finite (m a)) => FiniteMonad m. Synthetic topology?
         * Describing pumping lemma
+
 -}
 
 {-
